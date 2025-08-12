@@ -1,0 +1,60 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-app
+    volumes:
+      - .:/var/www
+    networks:
+      - location-network
+    depends_on:
+      - sql-db 
+    environment:
+      DB_HOST: sql-db
+      DB_PORT: 3306
+      DB_DATABASE: location_app_db
+      DB_USERNAME: root
+      DB_PASSWORD: astafa@1234
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - location-network
+
+  sql-db:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: astafa@1234
+      MYSQL_DATABASE: location_app_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - location-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: sql-db
+      PMA_USER: root
+      PMA_PASSWORD: astafa@1234
+    depends_on:
+      - sql-db
+    networks:
+      - location-network
+
+volumes:
+  mysql_data:
+networks:
+  location-network:
